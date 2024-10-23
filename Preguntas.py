@@ -1,4 +1,4 @@
-import Pregunta
+from Pregunta import Pregunta
 
 p1 = Pregunta("¡PC reconoce la impresora?", 
                 Pregunta("Mantenimiento",None,None),
@@ -45,4 +45,9 @@ def obtenerRespuesta(pregunta, respuesta):
         return pregunta.no
 
     
-print(obtenerRespuesta(p10, "si"))
+print(
+        obtenerRespuesta(
+            obtenerRespuesta(p10, "si"), #devuelve la 8
+              "no")
+    )
+
