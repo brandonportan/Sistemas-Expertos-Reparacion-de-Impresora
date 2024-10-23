@@ -40,14 +40,9 @@ p10 = Pregunta("¿Enciende?",
 
 def obtenerRespuesta(pregunta, respuesta):
     if respuesta == "si":
-        return pregunta.si
+        return  pregunta.si
     else:
         return pregunta.no
 
-    
-print(
-        obtenerRespuesta(
-            obtenerRespuesta(p10, "si"), #devuelve la 8
-              "no")
-    )
+
 
