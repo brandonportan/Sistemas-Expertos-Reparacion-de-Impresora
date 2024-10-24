@@ -46,3 +46,5 @@ def obtenerRespuesta(pregunta, respuesta):
 
 
 
+a = (obtenerRespuesta(p10, "si"))
+print(obtenerRespuesta(a.si, "si").pregunta)

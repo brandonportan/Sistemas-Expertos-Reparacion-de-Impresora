@@ -1,9 +1,58 @@
 # Ejemplo de uso de Grids: 
 #Importar Libreria
 import flet as ft
+from Pregunta import Pregunta
+
+
+p1 = Pregunta("¡PC reconoce la impresora?", 
+                Pregunta("Mantenimiento",None,None),
+                Pregunta("Reinstalar Controladores",None,None),)
+p2 = Pregunta("¿Muestra código de error?", 
+              Pregunta("Investigar codigo error",None,None),
+              p1)
+p3 = Pregunta("¿Cable USB conectado?",
+                p2,
+                Pregunta("Conectar USB",None,None))
+p4 = Pregunta("El papel está atascado?",
+                Pregunta("Abra la bandeja y retire el papel",None,None),
+                p3)
+p5 = Pregunta("Tiene papel la bandeja?",
+                p4,
+                Pregunta("Cargar papel",None,None))
+
+#la otra línea de sí imprime
+p6 = Pregunta("¿Hay suficiente tinta en los contenedores?",
+                    Pregunta("Limpiar inyectores",None,None),
+                    Pregunta("Llevar los envases",None,None))
+p7 = Pregunta("¿Imprime mal?",
+                p6,
+                Pregunta("Todo Bien",None,None))
+
+#imprime
+p8 = Pregunta("¿Imprime?",
+                p7,
+                p5)
+
+p9 = Pregunta("¿Está conectado el cable de corriente?",
+                Pregunta("Considerar cambiar cable",None,None),
+                Pregunta("Conectar cable",None,None))
+#enciende
+p10 = Pregunta("¿Enciende?",
+                p8,
+                p9)
+
+
+def obtenerRespuesta(pregunta, respuesta):
+    if respuesta == "si":
+        return  pregunta.si
+    else:
+        return pregunta.no
+    
+
+preguntaGlobal = p10
 
 #Funcion Main
-def main(page:ft.Page):
+def main(page:ft.Page):    
     page.title = 'Uso de Grid'
     page.theme_mode = ft.ThemeMode.LIGHT
     page.bgcolor = ft.colors.BLUE_GREY_800
@@ -11,17 +60,30 @@ def main(page:ft.Page):
     page.horizontal_alignment = ft.CrossAxisAlignment.CENTER
     page.padding = 20
 
+    
+
     # Funcion Agregar Nota
-    def Add_Note(e):
+    def Add_Note(e): #recibir el texto de la pregunta
          New_Note = Create_Note('Nueva Nota')
          Grid.controls.append(New_Note)
          page.update()
 
-    #Funcion Borrar Nota
-    def Delete_Note(Note):
-        Grid.controls.remove(Note)
+    def opcionSi(e):
+        global preguntaGlobal
+        New_Note = Create_Note(preguntaGlobal.si.pregunta)
+        Grid.controls.append(New_Note)
+        preguntaGlobal = obtenerRespuesta(preguntaGlobal, "si")
+        print(preguntaGlobal.pregunta)
         page.update()
-    
+
+    def opcionNo(e):   
+        global preguntaGlobal     
+        New_Note = Create_Note(preguntaGlobal.no.pregunta)
+        Grid.controls.append(New_Note)
+        preguntaGlobal = obtenerRespuesta(preguntaGlobal, "no")
+        print(preguntaGlobal.pregunta)
+        page.update()
+
     #Funcion Crear Nota
     def Create_Note(varText):
             Note_Content= ft.TextField(value=varText,multiline=True,
@@ -29,9 +91,9 @@ def main(page:ft.Page):
             Note = ft.Container(
                 content=ft.Column(
                     controls=[
-                        Note_Content,ft.IconButton(icon=ft.icons.DELETE,on_click=lambda _: Delete_Note(Note))
-                        ,ft.TextButton("Si")
-                        ,ft.TextButton(text="No")
+                        Note_Content
+                        ,ft.TextButton("Si",on_click=lambda _: opcionSi(Note))
+                        ,ft.TextButton(text="No",on_click=lambda _: opcionNo(Note))
                     ]
                 ),
                 #         width=200,
@@ -43,9 +105,7 @@ def main(page:ft.Page):
 
     #Usar Lista
     Notes=[
-        '1er. Nota',
-        '2da. Nota',
-        '3er. Nota',
+        preguntaGlobal.pregunta
     ]
     
 
@@ -72,5 +132,11 @@ def main(page:ft.Page):
             ),
             Grid
          )
+    
+    print("Hola")
 #Mostrar App
 ft.app(target=main)
+
+
+#preguntaGlobal = obtenerRespuesta(preguntraGlobal, "si") #!En la función sí
+#preguntaGlobal = obtenerRespuesta(preguntraGlobal, "no") #?En la función no
