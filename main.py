@@ -63,10 +63,12 @@ def main(page:ft.Page):
     
 
     # Funcion Agregar Nota
-    def Add_Note(e): #recibir el texto de la pregunta
-         New_Note = Create_Note('Nueva Nota')
-         Grid.controls.append(New_Note)
-         page.update()
+    def Refresh_Note(e): #recibir el texto de la pregunta
+        global preguntaGlobal
+        preguntaGlobal = p10
+        Grid.controls.clear()
+        Grid.controls.append(Create_Note(preguntaGlobal.pregunta))
+        page.update()
 
     def opcionSi(e):
         global preguntaGlobal
@@ -125,8 +127,8 @@ def main(page:ft.Page):
     page.add(
             ft.Row(
                  [
-                      ft.Text('Mis Notas Adhesivas',size=24,weight=ft.FontWeight.BOLD, color=ft.colors.WHITE),
-                      ft.IconButton(icon=ft.icons.ADD,on_click=Add_Note,icon_color=ft.colors.WHITE),
+                      ft.Text('Sistema Experto de Impresora',size=24,weight=ft.FontWeight.BOLD, color=ft.colors.WHITE),
+                      ft.IconButton(icon=ft.icons.REFRESH,on_click=Refresh_Note,icon_color=ft.colors.WHITE,icon_size=40),
                  ],
                  alignment=ft.MainAxisAlignment.SPACE_BETWEEN
             ),
