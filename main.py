@@ -89,16 +89,27 @@ def main(page:ft.Page):
     #Funcion Crear Nota
     def Create_Note(varText):
             Note_Content= ft.TextField(value=varText,multiline=True,
-            bgcolor = ft.colors.ORANGE_100)
+            bgcolor = ft.colors.ORANGE_100,read_only=True,text_size=17)
             Note = ft.Container(
-                content=ft.Column(
+        content=ft.Column(
+            controls=[
+                Note_Content,
+                # Agrega un Row para los botones
+                ft.Row(
                     controls=[
-                        Note_Content
-                        ,ft.TextButton("Si",on_click=lambda _: opcionSi(Note))
-                        ,ft.TextButton(text="No",on_click=lambda _: opcionNo(Note))
-                    ]
-                ),
-                #         width=200,
+                            ft.ElevatedButton(text="Si", on_click=lambda _: opcionSi(Note),bgcolor=ft.colors.GREEN_300,style=ft.ButtonStyle(
+                            color=ft.colors.WHITE  # Cambiar color del texto a blanco
+                            )),
+                            ft.ElevatedButton(text="No", on_click=lambda _: opcionNo(Note),bgcolor=ft.colors.RED_300,style=ft.ButtonStyle(
+                            color=ft.colors.WHITE  
+                )),
+                    ],
+                    alignment=ft.MainAxisAlignment.SPACE_BETWEEN
+                
+                )
+            ]
+            ,alignment=ft.MainAxisAlignment.SPACE_AROUND
+        ),
             height=200,
             bgcolor = ft.colors.ORANGE_100,
             border_radius=10,padding=10
