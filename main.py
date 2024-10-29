@@ -1,55 +1,9 @@
 # Ejemplo de uso de Grids: 
 #Importar Libreria
 import flet as ft
-from Pregunta import Pregunta
+import Preguntas as p    
 
-
-p1 = Pregunta("¡PC reconoce la impresora?", 
-                Pregunta("Mantenimiento",None,None),
-                Pregunta("Reinstalar Controladores",None,None),)
-p2 = Pregunta("¿Muestra código de error?", 
-              Pregunta("Investigar codigo error",None,None),
-              p1)
-p3 = Pregunta("¿Cable USB conectado?",
-                p2,
-                Pregunta("Conectar USB",None,None))
-p4 = Pregunta("El papel está atascado?",
-                Pregunta("Abra la bandeja y retire el papel",None,None),
-                p3)
-p5 = Pregunta("Tiene papel la bandeja?",
-                p4,
-                Pregunta("Cargar papel",None,None))
-
-#la otra línea de sí imprime
-p6 = Pregunta("¿Hay suficiente tinta en los contenedores?",
-                    Pregunta("Limpiar inyectores",None,None),
-                    Pregunta("Llevar los envases",None,None))
-p7 = Pregunta("¿Imprime mal?",
-                p6,
-                Pregunta("Todo Bien",None,None))
-
-#imprime
-p8 = Pregunta("¿Imprime?",
-                p7,
-                p5)
-
-p9 = Pregunta("¿Está conectado el cable de corriente?",
-                Pregunta("Considerar cambiar cable",None,None),
-                Pregunta("Conectar cable",None,None))
-#enciende
-p10 = Pregunta("¿Enciende?",
-                p8,
-                p9)
-
-
-def obtenerRespuesta(pregunta, respuesta):
-    if respuesta == "si":
-        return  pregunta.si
-    else:
-        return pregunta.no
-    
-
-preguntaGlobal = p10
+preguntaGlobal = p.p10
 
 #Funcion Main
 def main(page:ft.Page):    
@@ -60,36 +14,84 @@ def main(page:ft.Page):
     page.horizontal_alignment = ft.CrossAxisAlignment.CENTER
     page.padding = 20
 
-    
+    def deshabilitarBotoness(boton1, boton2):
+        boton1.style.bgcolor = ft.colors.GREY_400
+        boton2.style.bgcolor = ft.colors.GREY_400
+        boton1.disabled= True
+        boton2.disabled = True
+
+
+    def validarProximaPregunta(preguntaActual):
+        if (preguntaActual.si is None and preguntaActual.no is None):
+            return False
+        else:
+            return True
+
+    def crearTarjetaFinal():
+        notaFinal = ft.Container(
+                 content=ft.Column(
+                    controls=[
+                        ft.TextField(value="La asistencia ha finalizado",multiline=True,
+                        bgcolor = ft.colors.ORANGE_100,read_only=True,text_size=17)
+                    ],
+                    alignment=ft.MainAxisAlignment.SPACE_AROUND
+                ),
+            height=200,
+            bgcolor = ft.colors.ORANGE_100,
+            border_radius=10,padding=10
+            )
+        Grid.controls.append(notaFinal)
+        page.update()
+
 
     # Funcion Agregar Nota
     def Refresh_Note(e): #recibir el texto de la pregunta
         global preguntaGlobal
-        preguntaGlobal = p10
+        preguntaGlobal = p.p10
         Grid.controls.clear()
-        Grid.controls.append(Create_Note(preguntaGlobal.pregunta))
+        Grid.controls.append(Create_Note(preguntaGlobal.pregunta, False))
         page.update()
 
-    def opcionSi(e):
+    def opcionSi(boton1, boton2):
         global preguntaGlobal
-        New_Note = Create_Note(preguntaGlobal.si.pregunta)
-        Grid.controls.append(New_Note)
-        preguntaGlobal = obtenerRespuesta(preguntaGlobal, "si")
-        print(preguntaGlobal.pregunta)
-        page.update()
+        if validarProximaPregunta(preguntaGlobal.si):
+            New_Note = Create_Note(preguntaGlobal.si.pregunta, False)
+            Grid.controls.append(New_Note)
+            preguntaGlobal = preguntaGlobal.si
+            print(preguntaGlobal.pregunta)
+        else:
+            New_Note = Create_Note(preguntaGlobal.si.pregunta, True)
+            Grid.controls.append(New_Note)
+            crearTarjetaFinal()
+        deshabilitarBotoness(boton1, boton2)
+        page.update()      
 
-    def opcionNo(e):   
-        global preguntaGlobal     
-        New_Note = Create_Note(preguntaGlobal.no.pregunta)
-        Grid.controls.append(New_Note)
-        preguntaGlobal = obtenerRespuesta(preguntaGlobal, "no")
-        print(preguntaGlobal.pregunta)
-        page.update()
+    def opcionNo(boton1, boton2):   
+        global preguntaGlobal
+        if validarProximaPregunta(preguntaGlobal.no):
+            New_Note = Create_Note(preguntaGlobal.no.pregunta, False)
+            Grid.controls.append(New_Note)
+            preguntaGlobal = preguntaGlobal.no
+            print(preguntaGlobal.pregunta)
+        else:
+            New_Note = Create_Note(preguntaGlobal.no.pregunta, True)
+            Grid.controls.append(New_Note)
+            crearTarjetaFinal()
+        deshabilitarBotoness(boton1, boton2)
+        page.update()       
 
     #Funcion Crear Nota
-    def Create_Note(varText):
+    def Create_Note(varText, deshabilitarBotones):
             Note_Content= ft.TextField(value=varText,multiline=True,
             bgcolor = ft.colors.ORANGE_100,read_only=True,text_size=17)
+
+            btn_si = ft.ElevatedButton(text="Si", on_click=lambda _: opcionSi(btn_si, btn_no),bgcolor=ft.colors.GREEN_300,style=ft.ButtonStyle(
+                            color=ft.colors.WHITE  # Cambiar color del texto a blanco
+                            ))
+            
+            btn_no = ft.ElevatedButton(text="No", on_click=lambda _: opcionNo(btn_si, btn_no),bgcolor=ft.colors.RED_300,style=ft.ButtonStyle(
+                            color=ft.colors.WHITE  
+                            ))
             Note = ft.Container(
         content=ft.Column(
             controls=[
@@ -97,12 +99,9 @@ def main(page:ft.Page):
                 # Agrega un Row para los botones
                 ft.Row(
                     controls=[
-                            ft.ElevatedButton(text="Si", on_click=lambda _: opcionSi(Note),bgcolor=ft.colors.GREEN_300,style=ft.ButtonStyle(
-                            color=ft.colors.WHITE  # Cambiar color del texto a blanco
-                            )),
-                            ft.ElevatedButton(text="No", on_click=lambda _: opcionNo(Note),bgcolor=ft.colors.RED_300,style=ft.ButtonStyle(
-                            color=ft.colors.WHITE  
-                )),
+                            btn_si,
+                            btn_no
+                            
                     ],
                     alignment=ft.MainAxisAlignment.SPACE_BETWEEN
                 
@@ -114,6 +113,11 @@ def main(page:ft.Page):
             bgcolor = ft.colors.ORANGE_100,
             border_radius=10,padding=10
             )
+
+            if deshabilitarBotones:
+                deshabilitarBotoness(btn_no, btn_si)
+            
+
             return Note #La funcion debe retornar un Container...
 
     #Usar Lista
@@ -132,7 +136,7 @@ def main(page:ft.Page):
         #horizontal=False
     )
     for Note in Notes:
-        Grid.controls.append(Create_Note(Note))
+        Grid.controls.append(Create_Note(Note, False))
 
     #Actualizar Pagina
     page.add(
