@@ -1,159 +1,129 @@
-# Ejemplo de uso de Grids: 
-#Importar Libreria
-import flet as ft
-import Preguntas as p    
+import flet as ft   
+import cohere
+from serpapi import GoogleSearch
+import os
+from dotenv import load_dotenv
 
-preguntaGlobal = p.p10
+load_dotenv()
+serpapi_key = os.getenv("SERPAPI_KEY")
+cohere_key = os.getenv("COHERE_KEY")
 
-#Funcion Main
-def main(page:ft.Page):    
-    page.title = 'Uso de Grid'
+co = cohere.ClientV2(cohere_key)
+system_message = "You are helping me in the diagnosis of a not working printer your goal is to give a possible solution (just one) by asking closed questions (just one), i am going to give you a map of asked questions and their answers so you have context of the problem"
+
+i = 0
+preguntas = [
+    {
+        "Pregunta": "¿Enciende su impresora?",
+        "Respuesta": None,
+        "imagen": None
+    }
+]
+preg = ft.Text(
+        value=preguntas[i]["Pregunta"],
+        color=ft.colors.WHITE,
+        size=20,
+        weight=ft.FontWeight.BOLD
+    )
+image = ft.Image(
+    src="https://th.bing.com/th/id/R.682cc010a568bf4e0b2fa550208be220?rik=oAke0b8wKem8lg&pid=ImgRaw&r=0"
+)
+
+def main(page: ft.Page):
+    global preg
+    page.title = "My app"    
+    page.title = 'Aplicacion Tienda'
     page.theme_mode = ft.ThemeMode.LIGHT
     page.bgcolor = ft.colors.BLUE_GREY_800
-    page.vertical_alignment = ft.VerticalAlignment.CENTER
+    page.vertical_alignment =  ft.MainAxisAlignment.CENTER
     page.horizontal_alignment = ft.CrossAxisAlignment.CENTER
     page.padding = 20
+    page.update()
 
-    def deshabilitarBotoness(boton1, boton2):
-        boton1.style.bgcolor = ft.colors.GREY_400
-        boton2.style.bgcolor = ft.colors.GREY_400
-        boton1.disabled= True
-        boton2.disabled = True
-
-
-    def validarProximaPregunta(preguntaActual):
-        if (preguntaActual.si is None and preguntaActual.no is None):
-            return False
-        else:
-            return True
-
-    def crearTarjetaFinal():
-        notaFinal = ft.Container(
-                 content=ft.Column(
-                    controls=[
-                        ft.TextField(value="La asistencia ha finalizado",multiline=True,
-                        bgcolor = ft.colors.ORANGE_100,read_only=True,text_size=17)
-                    ],
-                    alignment=ft.MainAxisAlignment.SPACE_AROUND
-                ),
-            height=200,
-            bgcolor = ft.colors.ORANGE_100,
-            border_radius=10,padding=10
-            )
-        Grid.controls.append(notaFinal)
-        page.update()
-
-
-    # Funcion Agregar Nota
-    def Refresh_Note(e): #recibir el texto de la pregunta
-        global preguntaGlobal
-        preguntaGlobal = p.p10
-        Grid.controls.clear()
-        Grid.controls.append(Create_Note(preguntaGlobal.pregunta, False))
-        page.update()
-
-    def opcionSi(boton1, boton2):
-        global preguntaGlobal
-        if validarProximaPregunta(preguntaGlobal.si):
-            New_Note = Create_Note(preguntaGlobal.si.pregunta, False)
-            Grid.controls.append(New_Note)
-            preguntaGlobal = preguntaGlobal.si
-            print(preguntaGlobal.pregunta)
-        else:
-            New_Note = Create_Note(preguntaGlobal.si.pregunta, True)
-            Grid.controls.append(New_Note)
-            crearTarjetaFinal()
-        deshabilitarBotoness(boton1, boton2)
-        page.update()      
-
-    def opcionNo(boton1, boton2):   
-        global preguntaGlobal
-        if validarProximaPregunta(preguntaGlobal.no):
-            New_Note = Create_Note(preguntaGlobal.no.pregunta, False)
-            Grid.controls.append(New_Note)
-            preguntaGlobal = preguntaGlobal.no
-            print(preguntaGlobal.pregunta)
-        else:
-            New_Note = Create_Note(preguntaGlobal.no.pregunta, True)
-            Grid.controls.append(New_Note)
-            crearTarjetaFinal()
-        deshabilitarBotoness(boton1, boton2)
-        page.update()       
-
-    #Funcion Crear Nota
-    def Create_Note(varText, deshabilitarBotones):
-            Note_Content= ft.TextField(value=varText,multiline=True,
-            bgcolor = ft.colors.ORANGE_100,read_only=True,text_size=17)
-
-            btn_si = ft.ElevatedButton(text="Si", on_click=lambda _: opcionSi(btn_si, btn_no),bgcolor=ft.colors.GREEN_300,style=ft.ButtonStyle(
-                            color=ft.colors.WHITE  # Cambiar color del texto a blanco
-                            ))
-            
-            btn_no = ft.ElevatedButton(text="No", on_click=lambda _: opcionNo(btn_si, btn_no),bgcolor=ft.colors.RED_300,style=ft.ButtonStyle(
-                            color=ft.colors.WHITE  
-                            ))
-            Note = ft.Container(
+    container1 = ft.Container(
+        width=400,
+        height=400,
+        bgcolor=ft.colors.BLUE_GREY_800,
+        border_radius=20,
         content=ft.Column(
-            controls=[
-                Note_Content,
-                # Agrega un Row para los botones
+            [
+                ft.Text("Prueba Consumo de API", color=ft.colors.WHITE),
+                preg,
                 ft.Row(
                     controls=[
-                            btn_si,
-                            btn_no
-                            
-                    ],
-                    alignment=ft.MainAxisAlignment.SPACE_BETWEEN
-                
+                        ft.TextButton(
+                            "Si",
+                            on_click=lambda e: respuesta(e, "Si"),
+                        ),
+                        ft.TextButton(
+                            "No",
+                            on_click=lambda e: respuesta(e, "No"),
+                        ),   
+                    ]
+                ),
+                ft.Container(
+                    content=image
                 )
             ]
-            ,alignment=ft.MainAxisAlignment.SPACE_AROUND
-        ),
-            height=200,
-            bgcolor = ft.colors.ORANGE_100,
-            border_radius=10,padding=10
-            )
-
-            if deshabilitarBotones:
-                deshabilitarBotoness(btn_no, btn_si)
-            
-
-            return Note #La funcion debe retornar un Container...
-
-    #Usar Lista
-    Notes=[
-        preguntaGlobal.pregunta
-    ]
-    
-
-    #Declara GridView
-    Grid = ft.GridView(
-        expand=True,
-        max_extent=220,
-        child_aspect_ratio=1,
-        spacing=10,
-        run_spacing=20,
-        #horizontal=False
+        )
     )
-    for Note in Notes:
-        Grid.controls.append(Create_Note(Note, False))
+    page.add(container1)
 
-    #Actualizar Pagina
-    page.add(
-            ft.Row(
-                 [
-                      ft.Text('Sistema Experto de Impresora',size=24,weight=ft.FontWeight.BOLD, color=ft.colors.WHITE),
-                      ft.IconButton(icon=ft.icons.REFRESH,on_click=Refresh_Note,icon_color=ft.colors.WHITE,icon_size=40),
-                 ],
-                 alignment=ft.MainAxisAlignment.SPACE_BETWEEN
-            ),
-            Grid
-         )
-    
-    print("Hola")
-#Mostrar App
+    def respuesta(e, res):
+        global preg, i, preguntas, image    
+            
+        print(preguntas)
+        preguntas[i]["Respuesta"] = res
+        print(preguntas)
+        
+        # Preguntar a la IA
+        res = co.chat(
+            model="command-r-plus-08-2024",
+            messages=[
+                {"role": "system", "content": system_message},
+                {
+                    "role": "user",
+                    "content": "These are the questions: " + preguntas.__str__() + "\n if you need more information ask another question (one at a time), if you have a solution or a diagnostic then finish the conversation",
+                },
+            ],
+        )
+        print(res.message.content[0].text)
+        preguntas.append({"Pregunta": res.message.content[0].text, "Respuesta": None})
+        print(preguntas)
+        i = i + 1
+        
+        # Actualiza el valor de la pregunta y refresca el control
+        preg.value = preguntas[i]["Pregunta"]
+        preg.update()
+
+        # Actualiza la imagen con el nuevo enlace
+        new_image_link = get_image_link(0, preguntas[i]["Pregunta"])
+        if new_image_link:
+            image.src = new_image_link
+            image.update()
+
+    def get_image_link(pageNumber, query):
+        global serpapi_key
+        params = {
+            "q": query,  # Término de búsqueda
+            "hl": "es",  # Idioma español
+            "gl": "us",  # País
+            "api_key": serpapi_key,  # API key
+            "tbm": "isch",  # Tipo de búsqueda (imágenes)
+            "ijn": pageNumber,  # Número de la página
+        }
+
+        # Realiza la búsqueda
+        query = GoogleSearch(params)
+        data = query.get_dictionary()
+
+        # Extraer el enlace de la primera imagen
+        if 'images_results' in data and len(data['images_results']) > 0:
+            first_image_link = data['images_results'][0].get('original')
+            print("Link de la primera imagen:", first_image_link)
+            return first_image_link
+        else:
+            print("No se encontraron resultados de imágenes.")
+            return None
+
 ft.app(target=main)
-
-
-#preguntaGlobal = obtenerRespuesta(preguntraGlobal, "si") #!En la función sí
-#preguntaGlobal = obtenerRespuesta(preguntraGlobal, "no") #?En la función no
